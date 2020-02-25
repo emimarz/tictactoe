@@ -1,0 +1,11 @@
+{
+    "name": "estimtrack/test_php",
+    "description": "PHP test for Estimtrack",
+    "authors": [
+        {
+            "name": "Jaume Balust Martinez",
+            "email": "support@estimtrack.com"
+        }
+    ],
+    "require": {}
+}
