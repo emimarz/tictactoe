@@ -3,6 +3,8 @@
 
 class Tictactoe
 {
+    const WIDTH = 3;
+    const HEIGHT = 3;
 	var $player = "X";            //whose turn is
 	var $board = array();        //the tic tac toe board
 	var $totalMoves = 0;        //how many moves have been made so far
@@ -72,19 +74,20 @@ class Tictactoe
 		echo "It's player {$this->player}'s turn.".PHP_EOL;
 		echo "Type 1 to 9 to place the chip on the board.".PHP_EOL;
 
-		//TODO: refactor winner checking in a separate method
-		if ($this->isOver() != "Tie")
-			echo "Congratulations player " . $this->isOver() . ", you've won the game!".PHP_EOL;
-		else if ($this->isOver() == "Tie")
-			echo "Whoops! Looks like you've had a tie game. Want to try again?".PHP_EOL;
+		$result = $this->isOver();
+
+		if($result!==false){
+            if ($result === "Tie"){
+                echo "Whoops! Looks like you've had a tie game. Want to try again?".PHP_EOL;
+            } else {
+                echo "Congratulations player " . $result . ", you've won the game!".PHP_EOL;
+            }
+        }
 	}
 
 
 	public function move($data)
 	{
-
-		if ($this->isOver())
-			return;
 
 		$data = $this->convertDataToCoordinates($data);
 
@@ -104,73 +107,97 @@ class Tictactoe
 
 	public function isOver()
 	{
+	    $col = 0;
+	    $row = 0;
+	    $found = false;
+	    while (!$found && $row < self::HEIGHT) {
+            if($this->checkRow($row)) {
+                $found = $this->board[$row][0];
+            }
+            $row++;
+        }
 
-		//top row
-		if ($this->board[0][0] != ' ' && $this->board[0][0] == $this->board[0][1] && $this->board[0][1] == $this->board[0][2])
-			return $this->board[0][0];
+        while (!$found && $col < self::WIDTH) {
+            if($this->checkColumn($col)) {
+                $found = $this->board[0][$col];
+            }
+            $col++;
+        }
 
-		//middle row
-		if ($this->board[1][0] != ' ' && $this->board[1][0] == $this->board[1][1] && $this->board[1][1] == $this->board[1][2])
-			return $this->board[1][0];
+        if (!$found){
+            $found = $this->checkDiagonalRight();
+            if ($found!==false) {
+                $found = $this->board[0][0];
+            }
+        }
 
-		//bottom row
-		if ($this->board[2][0] != ' ' && $this->board[2][0] == $this->board[2][1] && $this->board[2][1] == $this->board[2][2])
-			return $this->board[2][0];
+        if(!$found){
+            $found = $this->checkDiagonalLeft();
+            if ($found!==false) {
+                $found = $this->board[0][self::WIDTH-1];
+            }
+        }
 
-		//first column
-		if ($this->board[0][0] != ' ' && $this->board[0][0] == $this->board[1][0] && $this->board[1][0] == $this->board[2][0])
-			return $this->board[0][0];
+        if ($this->totalMoves >= 9) {
+            $found = "Tie";
+        }
 
-		//second column
-		if ($this->board[0][1] != ' ' && $this->board[0][1] == $this->board[1][1] && $this->board[1][1] == $this->board[2][1])
-			return $this->board[0][1];
-
-		//third column
-		if ($this->board[0][2] != ' ' && $this->board[0][2] == $this->board[1][2] && $this->board[1][2] == $this->board[2][2])
-			return $this->board[0][2];
-
-		//diagonal 1
-		if ($this->board[0][0] != ' ' && $this->board[0][0] == $this->board[1][1] && $this->board[1][1] == $this->board[2][2])
-			return $this->board[0][0];
-
-		//diagonal 2
-		if ($this->board[0][2] != ' ' && $this->board[0][2] == $this->board[1][1] && $this->board[1][1] == $this->board[2][0])
-			return $this->board[0][2];
-
-		if ($this->totalMoves >= 9)
-			return "Tie";
+        return $found;
 	}
 
-	private function convertDataToCoordinates($data)
+	private function isCellEmpty($x, $y) {
+	    return $this->board[$x][$y] == ' ';
+    }
+
+	private function checkRow($row) {
+	    $col = 1;
+	    $return = !$this->isCellEmpty($row, $col-1);
+	    while(($col < self::WIDTH) && $return) {
+            $return = ($this->board[$row][$col-1] == $this->board[$row][$col]);
+            $col++;
+        }
+	    return $return;
+    }
+
+    private function checkColumn($col) {
+        $row = 1;
+        $return = !$this->isCellEmpty($row-1, $col);
+        while(($row < self::HEIGHT) && $return) {
+            $return = ($this->board[$row-1][$col] == $this->board[$row][$col]);
+            $row++;
+        }
+        return $return;
+    }
+
+    private function checkDiagonalRight() {
+        $row = 1;
+        $col = 1;
+        $return = !$this->isCellEmpty(0, 0);
+        while(($row < self::HEIGHT) && $return) {
+            $return = ($this->board[$row-1][$col-1] == $this->board[$row][$col]);
+            $row++;
+            $col++;
+        }
+        return $return;
+    }
+
+    private function checkDiagonalLeft() {
+        $row = 1;
+        $col = self::WIDTH - 1;
+        $return = !$this->isCellEmpty($row-1, $col);
+        while(($row < self::HEIGHT) && $return) {
+            $return = ($this->board[$row-1][$col] == $this->board[$row][$col-1]);
+            $row++;
+            $col--;
+        }
+        return $return;
+    }
+
+    public function convertDataToCoordinates($data)
 	{
-		switch ($data) {
-		    case 1:
-		        return [0,0];
-		        break;
-			case 2:
-				return [0,1];
-		        break;
-			case 3:
-				return [0,2];
-		        break;
-			case 4:
-				return [1,0];
-		        break;
-			case 5:
-				return [1,1];
-		        break;
-			case 6:
-				return [1,2];
-		        break;
-			case 7:
-				return [2,0];
-		        break;
-			case 8:
-				return [2,1];
-		        break;
-			case 9:
-				return [2,2];
-		        break;
-		}
+	    return [
+            intdiv($data - 1, self::WIDTH),
+            ($data - 1) % self::WIDTH
+        ];
 	}
 }
